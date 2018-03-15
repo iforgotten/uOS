@@ -10,3 +10,5 @@
 http://blog.csdn.net/iamljj/article/details/5655169  
 Inline assembly for x86 in linux  
 https://www.ibm.com/developerworks/library/l-ia/index.html  
+修复依赖项命令  
+sudo apt-get install -f  
