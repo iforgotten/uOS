@@ -5,7 +5,10 @@
 > dd if=xxxx.bin of=xxx.img bs=512 count=1 conv=notrunc  
 > qemu -fda xxx.img  
 
-参考资料：  
+# 备注
+暂时不会用qemu进行无symbol的反汇编调试，暂时用bochs代替  
+
+# 参考资料：  
 使用Qemu + gdb调试内核  
 http://blog.csdn.net/iamljj/article/details/5655169  
 Inline assembly for x86 in linux  
