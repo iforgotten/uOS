@@ -6,7 +6,7 @@
 > qemu -fda xxx.img  
 
 # 备注
-暂时不会用qemu进行无symbol的反汇编调试，用bochs的反汇编功能代替  
+
 
 # 参考资料：  
 使用Qemu + gdb调试内核  
