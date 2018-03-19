@@ -25,14 +25,16 @@ tools/sign: tools/sign.c
 	
 obj/bootblock: tools/sign
 	tools/sign obj/bootblock.out obj/bootblock
+	# dd if=/dev/zero of=obj/uOS.img count=10000
+	dd if=obj/bootblock of=obj/uOS.img count=512 conv=notrunc
 
-.PHONY:clean qemu rebuild
+.PHONY:clean qemu-mon rebuild 
 clean:
 	rm -rf obj
 	rm -f tools/sign
 
-qemu:
-	dd if=/dev/zero of=obj/uOS.img count=10000
-	dd if=obj/bootblock of=obj/uOS.img conv=notrunc
-	qemu -gdb tcp::1234 -fda obj/uOS.img
+qemu-mon:
+	gnome-terminal -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -fda obj/uOS.img"
+	sleep 1
+	gnome-terminal -e "gdb -q -x tools/gdbinit"
 rebuild: clean all

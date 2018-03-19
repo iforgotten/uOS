@@ -10,19 +10,6 @@
 # 4. 使能PE
 # 5. 跳转到保护模式下执行
 
-# 强制4字节对齐
-.p2align 2
-GDT:
-	SEG_NULL													# 段选择子为0，即：index == 0
-	SEG_NORMAL(0x0, 0xffffffff, SEG_TYPE_X | SEG_TYPE_R)		# 代码段，段选择子为0x8，即：index == 0x8
-	SEG_NORMAL(0x0, 0xffffffff, SEG_TYPE_W)						# 数据段，段选择子位0x10, 即：index == 0x10
-
-# GDTR共6个字节（48bit），高32位为基地址，后16位为段界限
-# 遵循C调用约定，调用者负责清理堆栈，参数从右向左传递
-GDTDESC:
-	.word	(GDTDESC - GDT - 1)		# sizeof(GDT) - 1 个字节 == 3 * 8 - 1 = 23个字节，化为16进制为 == 0x17
-	.long	GDT
-
 .global start
 start:
 .code16
@@ -70,5 +57,15 @@ errWait:
 	# 不应该跳转到这里，如果跳转到这里就是出现错误了
 	jmp		errWait
 
+# 强制4字节对齐
+.p2align 2
+GDT:
+	SEG_NULL													# 段选择子为0，即：index == 0
+	SEG_NORMAL(0x0, 0xffffffff, SEG_TYPE_X | SEG_TYPE_R)		# 代码段，段选择子为0x8，即：index == 0x8
+	SEG_NORMAL(0x0, 0xffffffff, SEG_TYPE_W)						# 数据段，段选择子位0x10, 即：index == 0x10
 
-
+# GDTR共6个字节（48bit），高32位为基地址，后16位为段界限
+# 遵循C调用约定，调用者负责清理堆栈，参数从右向左传递
+GDTDESC:
+	.word	(GDTDESC - GDT - 1)		# sizeof(GDT) - 1 个字节 == 3 * 8 - 1 = 23个字节，化为16进制为 == 0x17
+	.long	GDT
