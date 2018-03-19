@@ -64,7 +64,7 @@ code32CS:
 	# 设置堆栈栈顶指针esp和栈底指针ebp
 	movl	$0x0, %ebp
 	movl	$start, %esp
-	call	bootmain
+	# call	bootmain
 
 errWait:
 	# 不应该跳转到这里，如果跳转到这里就是出现错误了
