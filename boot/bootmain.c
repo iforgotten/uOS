@@ -24,8 +24,12 @@ lpt_putc(int c) {
     outb(LPTPORT+0,c);
 }
 */
-const unsigned int SECTSIZE = 512;
-const struct elfhdr* ELFHDR = (struct elfhdr*)(0x100000);
+const unsigned int SECTORSIZE = 512;
+
+// 大于1MB的空间，即0x100000开始，是真正的扩展空间
+// 0x100000 是入口点
+// bootloader的边界 - 0x000A0000是空闲空间
+const struct elfhdr* ELFHDR = (struct elfhdr*)(0x090000);
 
 static void
 waitdisk() {
@@ -95,8 +99,8 @@ readSector(void *dst, uint32_t secno) {
     // 16bit - 23bit
     outb(0x1F5, ((secno >> 16) & 0xFF));
 
-    // 通过0x1F6设置为LDA模式访问磁盘
-    // 1110 0000 == 0xC0
+    // 通过0x1F6设置为LBA模式访问磁盘
+    // 1110 0000 == 0xE0
     // 低4位为 24bit - 27bit
     outb(0x1F6, ((secno >> 24) & 0xF) | 0xE0);
 
@@ -107,39 +111,21 @@ readSector(void *dst, uint32_t secno) {
     waitdisk();
 
     // 拷贝数据到内存中
-    insl(0x1F0, dst, SECTSIZE / 4);
+    insl(0x1F0, dst, SECTORSIZE / 4);
 
 } // 采用CPU查询模式来访问IO
 
 
-
-/*
-// 从内核中，从@offset中读取@count个字节的数据到@va处
-static void
-readSeg(uintptr_t va,uint32_t count, uint32_t offset) {
-    // 计算段尾
-    uintptr_t end_va = va + count;
-
-    // round down to sector boundary
-    va -= offset % SECTSIZE;
-
-    uint32_t secno = (offset / SECTSIZE) + 1;
-
-    // 读取程序的每一个节，即，每一个扇区
-    for (; va < end_va; va += SECTSIZE, secno ++) {
-        readSect((void *)va, secno);
-    }
-}
-*/
 // 从内核中，从@offset中读取@count个字节的数据到@va处
 static void
 readSegment(uintptr_t va,uint32_t count, uint32_t offset) {
     // 计算结束地址
     uintptr_t end_va = va + count;
 
-    va -= (offset % SECTSIZE);
+    va -= (offset % SECTORSIZE);
+
     // 计算数据所在的扇区
-    uint32_t secno = (offset / SECTSIZE) + 1;
+    uint32_t secno = (offset / SECTORSIZE) + 1;
 
     // 如果没有到结束地址，循环读数据，每次读一个扇区
     // 一个扇区一个扇区的读数据
@@ -147,7 +133,7 @@ readSegment(uintptr_t va,uint32_t count, uint32_t offset) {
     while(va < end_va) {
         // 从磁盘上读取数据
         readSector((void*)va, secno);
-        va += SECTSIZE;
+        va += SECTORSIZE;
         ++secno;
     }
 }
@@ -159,9 +145,7 @@ bootmain(void)
     // 读取1号扇区
     // 根据intel白皮书，页最小位4KB
     // 可能读多了
-    // readSeg((uintptr_t)ELFHDR, (SECTSIZE * 8),0);
-
-    readSegment((uint32_t)ELFHDR, (SECTSIZE*8), 0);
+    readSegment((uint32_t)ELFHDR, (SECTORSIZE*8), 0);
 
     // 判断是否是合法的ELF文件
     if(ELFHDR->e_magic != ELF_MAGIC) {
@@ -185,13 +169,12 @@ bootmain(void)
      * p_filesz 段在文件中的长度
      * p_memsz  段在内存中的长度
      * */
-    struct proghdr *ph, *eph;
+    struct proghdr *ph;
     ph = (struct proghdr *)((uintptr_t)ELFHDR + ELFHDR->e_phoff);
 
-    // TODO：读出来的地址段是正确的，但是读出来的数据段是错误的
-    // 加载所有的段进内存
+    // 加载所有的节，即：段内容进内存
     int i = 0;
-    while(i++ < ELFHDR->e_phnum) {
+    while(++i < ELFHDR->e_phnum) {
         readSegment(ph->p_va, ph->p_memsz,ph->p_offset);
         ph++;
     }
@@ -200,8 +183,6 @@ bootmain(void)
     ((void (*)(void))(ELFHDR->e_entry))();
 
 bad:
-    outw(0x8A00,0x8A00);
-    outw(0x8A00,0x8E00);
 
     // do nothing
     while(1);

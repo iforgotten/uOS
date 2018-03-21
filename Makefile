@@ -36,7 +36,7 @@ obj/bootblock: tools/sign
 	dd if=obj/bootblock of=obj/uOS.img count=512 conv=notrunc
 	dd if=bin/kernel of=obj/uOS.img seek=1 conv=notrunc
 
-.PHONY:clean debug qemu-mon bios-mon rebuild 
+.PHONY:clean debug qemu-kern qemu-mon bios-mon rebuild 
 clean:
 	rm -rf obj
 	rm -f tools/sign
@@ -54,4 +54,8 @@ debug:
 	gnome-terminal -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda obj/uOS.img"
 	sleep 1
 	gnome-terminal -e "gdb -q -x tools/gdbinit"
+qemu-kern: 
+	gnome-terminal -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda obj/uOS.img"
+	sleep 1
+	gnome-terminal -e "gdb -q -x tools/kerninit"
 rebuild: clean all

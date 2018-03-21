@@ -71,6 +71,8 @@ code32CS:
 	movw	%ax, %fs
 
 	# 设置堆栈栈顶指针esp和栈底指针ebp
+	# 0x7C00之前的内存空间并没有用到
+	# 可以做为bootloader的堆栈进行使用
 	movl	$0x0, %ebp
 	movl	$start, %esp
 	call	bootmain
