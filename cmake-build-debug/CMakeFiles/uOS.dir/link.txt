@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/uOS.dir/boot/bootmain.c.o CMakeFiles/uOS.dir/tools/sign.c.o  -o uOS 
