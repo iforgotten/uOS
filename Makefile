@@ -1,61 +1,99 @@
-TARGETS		:= bin/kernel tools/sign obj/bootmain.o  obj/bootblock.out obj/bootblock
-
+TARGETS		:= tools/sign obj/bootmain.o obj/bootblock.out bin/bootblock bin/kernel bin/uOS.img
+# bin/bootblock  
 CPFLAGS		:= -S -O binary
-LDFLAGS		:= -N -m elf_i386 -e start -Ttext 0x7C00 -o
+LDFLAGS		:= -m elf_i386 -N
+LDLABLE		:= -e
+LDTEXT		:= -Ttext
 DPFLAGS		:= -S
-CCFLAGS		:= -fno-builtin -Wall -MD -ggdb -m32 -fno-stack-protector -nostdinc -Iinclude -Iinclude/x86
+CFLAGS		:= -fno-builtin -Wall -MD -fno-stack-protector -nostdinc -Iinclude -Iinclude/x86
 
-CP			:= objcopy
-LD			:= ld
-DP			:= objdump
-CC			:= gcc 
+CP		:= objcopy
+LD		:= ld 
+DP		:= objdump
+CC		:= gcc -ggdb -m32
+
+V		:= @
+SEMICOLON	:= /
+TERMINAL	:= gnome-terminal
+TOOLSRC		:= $(wildcard tools/*.c)
+TOOLSELF	:= tools/sign
+BINDIR		:= bin
+# functions
+make_dir = $(shell mkdir -p $(1))
+totarget = $(addprefix $(BINDIR)$(SEMICOLON),$(1))
+
+OBJDIR 		:= $(call make_dir, obj)
+$(call make_dir, bin)
+
+KERNEL		= $(call totarget,kernel)
+BOOTBLOCK 	= $(call totarget,bootblock)
+UOSIMG		= $(call totarget,uOS.img)
 
 all:$(TARGETS) 
-bin/kernel: kernel/init/init.o
-	$(LD) -m elf_i386 -Ttext 0x100000 -e kern_init -o bin/kernel kernel/init/init.o
+# 生成内核
+$(KERNEL): kernel/init/init.o
+	$(LD) $(LDFLAGS) $(LDLABLE) kern_init $(LDTEXT) 0x100000 -o $@ kernel/init/init.o
 kernel/init/init.o:kernel/init/init.c
-	$(CC) $(CCFLAGS) -c $^ -o $@
+	@echo "=========="
+	@echo "KERNEL"
+	@echo "=========="
+	$(CC) $(CFLAGS) -c $^ -o $@
 
+# 生成bootblock.out
 obj/bootblock.out: obj/bootblock.o
 	$(CP) $(CPFLAGS) $^ $@
 obj/bootblock.o: obj/bootasm.o obj/bootmain.o
-	$(LD) $(LDFLAGS) $@ $^
+	$(LD) $(LDFLAGS) $(LDLABLE) start $(LDTEXT) 0x7C00 -o $@ $^
 	$(DP) $(DPFLAGS) $@ > obj/bootblock.asm
 obj/bootmain.o: boot/bootmain.c
-	mkdir obj
-	$(CC) $(CCFLAGS) -Os -c $^ -o $@ 
+	$(CC) $(CFLAGS) -Os -c $^ -o $@ 
 obj/bootasm.o: boot/bootasm.S
-	$(CC) $(CCFLAGS) -Os -c $^ -o $@
+	@echo "=========="
+	@echo "BOOTLOADER"
+	@echo "=========="
+	$(CC) $(CFLAGS) -Os -c $^ -o $@
 
-tools/sign: tools/sign.c
+# 创建sign
+$(TOOLSELF):$(TOOLSRC)
 	$(CC) -O2 -o $@ $^
-	
-obj/bootblock: tools/sign
-	tools/sign obj/bootblock.out obj/bootblock
-	dd if=/dev/zero of=obj/uOS.img count=10000
-	dd if=obj/bootblock of=obj/uOS.img count=512 conv=notrunc
-	dd if=bin/kernel of=obj/uOS.img seek=1 conv=notrunc
+
+# 签名bootloader
+# 
+$(BOOTBLOCK): $(TOOLSELF)
+	@echo "=========="
+	@echo "SIGN BOOTLOADER"
+	@echo "=========="
+	$^ obj/bootblock.out $@
+
+# 生成uOS硬盘镜像
+$(UOSIMG): $(BOOTBLOCK) $(KERNEL)
+	@echo "=========="
+	@echo "UOSIMG"
+	@echo "=========="
+	dd if=/dev/zero of=$@ count=10000
+	dd if=$(BOOTBLOCK) of=$@ count=512 conv=notrunc
+	dd if=$(KERNEL) of=$@ seek=1 conv=notrunc
+
 
 .PHONY:clean debug qemu-kern qemu-mon bios-mon rebuild 
 clean:
-	rm -rf obj
+	rm -rf obj bin
 	rm -f tools/sign
-	rm -f bin/kernel kernel/init/init.o kernel/init/init.d
+	rm -f kernel/init/init.o kernel/init/init.d
 qemu-mon:
-	gnome-terminal -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda obj/uOS.img"
-	sleep 1
-	gnome-terminal -e "gdb -q -x tools/bootinit"
-
+	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
+	$(V) sleep 1
+	$(V) $(TERMINAL) -e "gdb -q -x tools/bootinit"
 bios-mon:
-	gnome-terminal -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda obj/uOS.img"
-	sleep 1
-	gnome-terminal -e "gdb -q -x tools/biosinit"
+	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
+	$(V) sleep 1
+	$(V) $(TERMINAL) -e "gdb -q -x tools/biosinit"
 debug:
-	gnome-terminal -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda obj/uOS.img"
-	sleep 1
-	gnome-terminal -e "gdb -q -x tools/gdbinit"
+	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
+	$(V) sleep 1
+	$(V) $(TERMINAL) -e "gdb -q -x tools/gdbinit"
 qemu-kern: 
-	gnome-terminal -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda obj/uOS.img"
-	sleep 1
-	gnome-terminal -e "gdb -q -x tools/kerninit"
+	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
+	$(V) sleep 1
+	$(V) $(TERMINAL) -e "gdb -q -x tools/kerninit"
 rebuild: clean all

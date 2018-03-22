@@ -47,7 +47,6 @@ insl(uint32_t port, void *addr, int cnt) {
     // 传送到附加段中的由目的变址寄存器所指向的存储单元中
     // 并根据DF的值和数据类型修改目的变址寄存器的内容。
     /*
-    /*
      *  mov edi, addr
      *                                 mov     ecx, cnt
         .text:00007CCA                 mov     edx, port
