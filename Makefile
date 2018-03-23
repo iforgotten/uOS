@@ -1,11 +1,15 @@
-TARGETS		:= tools/sign obj/bootmain.o obj/bootblock.out bin/bootblock bin/kernel bin/uOS.img
-# bin/bootblock  
+TARGETS		:= tools/sign obj/bootmain.o obj/bootblock.out bin/bootblock bin/kernel bin/uOS.img kernel/driver/console.o
+
 CPFLAGS		:= -S -O binary
 LDFLAGS		:= -m elf_i386 -N
 LDLABLE		:= -e
 LDTEXT		:= -Ttext
 DPFLAGS		:= -S
-CFLAGS		:= -fno-builtin -Wall -MD -fno-stack-protector -nostdinc -Iinclude -Iinclude/x86
+LIBSDIR		:= /home/alvinli/workspace/uOS/libs
+KERNLIBSDIR += /home/alvinli/workspace/uOS/kernel/libs 		\
+			   -I/home/alvinli/workspace/uOS/kernel/driver
+
+CFLAGS		:= -fno-builtin -Wall -MD -fno-stack-protector -nostdinc -I$(LIBSDIR) -I$(KERNLIBSDIR)
 
 CP		:= objcopy
 LD		:= ld 
@@ -13,6 +17,7 @@ DP		:= objdump
 CC		:= gcc -ggdb -m32
 
 V		:= @
+QEMU 	:= qemu
 SEMICOLON	:= /
 TERMINAL	:= gnome-terminal
 TOOLSRC		:= $(wildcard tools/*.c)
@@ -31,12 +36,18 @@ UOSIMG		= $(call totarget,uOS.img)
 
 all:$(TARGETS) 
 # 生成内核
-$(KERNEL): kernel/init/init.o
-	$(LD) $(LDFLAGS) $(LDLABLE) kern_init $(LDTEXT) 0x100000 -o $@ kernel/init/init.o
-kernel/init/init.o:kernel/init/init.c
+$(KERNEL): kernel/init/init.o libs/string.o kernel/driver/console.o kernel/libs/stdio.o
+	$(LD) $(LDFLAGS) $(LDLABLE) kern_init $(LDTEXT) 0x100000 -T tools/kernel.ld -o $@ $^
+kernel/init/init.o:kernel/init/init.c 
 	@echo "=========="
 	@echo "KERNEL"
 	@echo "=========="
+	$(CC) $(CFLAGS) -c $^ -o $@
+libs/string.o:libs/string.c 
+	$(CC) $(CFLAGS) -c $^ -o $@
+kernel/driver/console.o: kernel/driver/console.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+kernel/libs/stdio.o:kernel/libs/stdio.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 # 生成bootblock.out
@@ -75,11 +86,14 @@ $(UOSIMG): $(BOOTBLOCK) $(KERNEL)
 	dd if=$(KERNEL) of=$@ seek=1 conv=notrunc
 
 
-.PHONY:clean debug qemu-kern qemu-mon bios-mon rebuild 
+.PHONY:clean gdb debug qemu-kern qemu-mon bios-mon rebuild 
 clean:
 	rm -rf obj bin
-	rm -f tools/sign
-	rm -f kernel/init/init.o kernel/init/init.d
+	rm -f tools/*.o tools/*.d tools/sign
+	rm -f kernel/init/*.o kernel/init/*.d
+	rm -f kernel/libs/*.o kernel/libs/*.d
+	rm -f kernel/driver/*.o kernel/driver/*.d
+	rm -f libs/*.o libs/*.d
 qemu-mon:
 	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
 	$(V) sleep 1
@@ -96,4 +110,6 @@ qemu-kern:
 	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
 	$(V) sleep 1
 	$(V) $(TERMINAL) -e "gdb -q -x tools/kerninit"
+gdb:
+	$(V)$(QEMU) -S -s -parallel stdio -hda bin/uOS.img -serial null
 rebuild: clean all

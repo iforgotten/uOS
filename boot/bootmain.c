@@ -1,29 +1,7 @@
-#include "../libs/defs.h"
-#include "../libs/x86.h"
-#include "../libs/elf.h"
+#include "defs.h"
+#include "x86.h"
+#include "elf.h"
 
-
-// LSR Bit1 == 1时，表示THR可以写入数据
-// 当FIFO启用时，可以输入多个byte字节，如果没有启用，只能缓冲一个byte的数据
-// 并口输出
-/*
-#define LPTPORT         0x378
-
-static void
-delay(void) {
-    int i;
-    for(i = 0; i < 255; ++i);
-}
-
-static void
-lpt_putc(int c) {
-    int i;
-    for(i = 0; !(inb((uint8_t)LPTPORT+1) & 0x80) && (i < 12800); ++i) {
-        delay();
-    }
-    outb(LPTPORT+0,c);
-}
-*/
 const unsigned int SECTORSIZE = 512;
 
 // 大于1MB的空间，即0x100000开始，是真正的扩展空间
@@ -146,7 +124,6 @@ bootmain(void)
     // 根据intel白皮书，页最小位4KB
     // 可能读多了
     readSegment((uint32_t)ELFHDR, (SECTORSIZE*8), 0);
-
     // 判断是否是合法的ELF文件
     if(ELFHDR->e_magic != ELF_MAGIC) {
         // 不是合法的ELF文件

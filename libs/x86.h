@@ -5,7 +5,7 @@
 #ifndef __LIBS_X86_H__
 #define __LIBS_X86_H__
 
-#include "../libs/defs.h"
+#include "defs.h"
 
 static inline uint8_t inb(uint16_t port) __attribute__((always_inline));
 static inline void outb(uint16_t port, uint8_t data) __attribute__((always_inline));
@@ -65,5 +65,42 @@ insl(uint32_t port, void *addr, int cnt) {
         : "memory"
     );
 }
+
+
+static inline void* __memset(void* ptr, char c, size_t cnt) __attribute__((always_inline));
+static inline void* __memmove(void* dst, void* src, size_t cnt) __attribute__((always_inline));
+
+#ifndef __HAVE_ARCH_MEMSET
+#define __HAVE_ARCH_MEMSET
+static inline void*
+__memset(void *ptr, char c, size_t cnt) {
+    asm volatile(
+		"cld;"      \
+		"rep stosb;"
+		: "+D"(ptr),"+c"(cnt)
+		: "a"(c)
+		: "memory"
+    );
+    return ptr;
+}
+#endif
+
+#ifndef __HAVE_ARCH_MEMMOVE
+#define	__HAVE_ARCH_MEMMOVE
+
+// 从@src处，移动@cnt个字节到@dst处
+static inline void*
+__memmove(void* dst, void* src, size_t cnt) {
+	void* ret = dst;
+	asm volatile(
+		"cld;"		\
+		"rep movsb;"
+		: "+D"(dst),"+S"(src),"+c"(cnt)
+		::"memory"
+	);
+	return ret;
+}
+#endif
+
 
 #endif /* !__LIBS_X86_H__ */

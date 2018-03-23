@@ -11,6 +11,9 @@
 
 // 定义布尔类型
 typedef int bool;
+#define true	1
+#define false	0
+
 
 // 明确基本类型占多少位
 typedef char                int8_t;
