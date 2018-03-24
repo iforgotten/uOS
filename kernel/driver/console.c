@@ -47,8 +47,8 @@ static void
 CGA_init(void) {
 	// 初始化CRT的字符缓存， 控制寄存器
 	uint16_t* buff = (uint16_t*)CGA_TXT_BUFFER;
-	*buff = 0xCCCC;
-	if(*buff == 0xCCCC) {
+	*buff = 0x0700;
+	if(*buff == 0x0700) {
 		// 存在CGA区域
 		crtBuff = buff;
 		crtContoller = CGA_TXT_CONT;
@@ -109,7 +109,8 @@ CGA_putch(int ch) {
 
     // scroll up
     if(crtPos >= CRT_SIZE) {
-    	memmove((void*)crtBuff, (void*)(CRT_SIZE - CRT_COLS), (CRT_SIZE - CRT_COLS) * sizeof(uint16_t));
+    	memmove((void*)crtBuff, (void*)(CRT_SIZE - CRT_COLS), \
+    			(CRT_SIZE - CRT_COLS) * sizeof(uint16_t));
     	CGA_scrollup();
     }
 
@@ -131,11 +132,13 @@ CGA_scrollup() {
 	crtPos -= CRT_COLS;
 }
 
+// TODO - 完成串口，并口的初始化
 void
 console_init(void) {
 	CGA_init();
 }
 
+// TODO - 完成串口，并口的字符输出
 void
 console_putch(int ch) {
 	CGA_putch(ch);

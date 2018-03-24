@@ -1,99 +1,140 @@
-TARGETS		:= tools/sign obj/bootmain.o obj/bootblock.out bin/bootblock bin/kernel bin/uOS.img kernel/driver/console.o
+PWD 	:= $(shell pwd)
+
+CC		:= gcc -m32 -ggdb
+CP		:= objcopy
+LD		:= ld 
+DP		:= objdump
 
 CPFLAGS		:= -S -O binary
 LDFLAGS		:= -m elf_i386 -N
 LDLABLE		:= -e
 LDTEXT		:= -Ttext
 DPFLAGS		:= -S
-LIBSDIR		:= /home/alvinli/workspace/uOS/libs
-KERNLIBSDIR += /home/alvinli/workspace/uOS/kernel/libs 		\
-			   -I/home/alvinli/workspace/uOS/kernel/driver
 
-CFLAGS		:= -fno-builtin -Wall -MD -fno-stack-protector -nostdinc -I$(LIBSDIR) -I$(KERNLIBSDIR)
-
-CP		:= objcopy
-LD		:= ld 
-DP		:= objdump
-CC		:= gcc -ggdb -m32
-
-V		:= @
-QEMU 	:= qemu
-SEMICOLON	:= /
+CFLAGS		:= -fno-builtin -Wall -fno-stack-protector -nostdinc -MD
+V			:= @
+QEMU 		:= qemu
 TERMINAL	:= gnome-terminal
+
+RM			:= rm -f 
+SEMI		:= /
+
+# 最后在编译之前生成bin和obj文件夹
+ifndef OBJDIR
+OBJDIR	:= $(shell if find obj -type d 2>&1 | grep 'No' > /dev/null 2>&1; \
+			then mkdir -p 'obj';\
+			echo 'obj';\
+			else echo 'obj';fi)
+endif
+
+ifndef BINDIR
+BINDIR	:= $(shell if find bin -type d 2>&1 | grep 'No' > /dev/null 2>&1; \
+			then mkdir -p 'bin';\
+			echo 'bin';\
+			else echo 'bin';fi)
+endif
+# --------------------------------------------------------------------------------------------------
+# Create Bootblock
+BOOT_DIR	:= boot/
+BOOT_ELF	:= $(BINDIR)$(SEMI)bootblock
+BOOT_OUT	:= $(OBJDIR)$(SEMI)bootblock.out
+BOOT_INCLUDE := libs
+
+BOOT_OUT_OBJS := $(patsubst %.out, %.o, $(BOOT_OUT))
+BOOT_SOURCE	:= $(wildcard $(BOOT_DIR)*.c $(BOOT_DIR)*.S)
+BOOT_INCLUDE := $(addprefix $(PWD)$(SEMI), $(BOOT_INCLUDE))
+BINCLUDE 	:= $(addprefix -I, $(BOOT_INCLUDE))
+
+BOOT_OBJS	:= $(addsuffix .o, $(basename $(BOOT_SOURCE)))
+BOOT_TO_OBJECT = $(addprefix $(OBJDIR)$(SEMI),$(notdir $(addsuffix .o, $(basename $(1)))))
+BOOT_OBJS = $(OBJDIR)$(SEMI)bootasm.o $(OBJDIR)$(SEMI)bootmain.o
+
+define CREATE_BOOT_OBJ_TARGET
+$(call BOOT_TO_OBJECT,$(1)) : $(1)
+	$(V) $(CC) $(CFLAGS) $(BINCLUDE) -Os -c $$^ -o $$@ 
+endef
+
+# --------------------------------------------------------------------------------------------------
+# Create tools/sign
 TOOLSRC		:= $(wildcard tools/*.c)
 TOOLSELF	:= tools/sign
-BINDIR		:= bin
-# functions
-make_dir = $(shell mkdir -p $(1))
-totarget = $(addprefix $(BINDIR)$(SEMICOLON),$(1))
+BOOT_BLOCK	:= $(BINDIR)$(SEMI)bootblock
+#----------------------------------------------------------------------------------------------------
+# Create Kernel
+KERN_DIRS	= $(shell find kernel/ -maxdepth 3 -type d)
+KERN_DIRS += $(shell find libs/ -maxdepth 3 -type d)
+KERN_SOURCE	+= $(foreach dir, $(KERN_DIRS), $(wildcard $(dir)/*.c))
+KERN_INCLUDE += kernel/libs		\
+				kernel/driver	\
+				libs
+KERN_INCLUDE := $(addprefix $(PWD)$(SEMI), $(KERN_INCLUDE))
+KERN_OBJS	:= $(addsuffix .o, $(basename $(KERN_SOURCE)))
+KINCLUDE 	:= $(addprefix -I, $(KERN_INCLUDE))
+KERNEL 	:= $(BINDIR)$(SEMI)kernel
+KERN_LD := tools/kernel.ld
 
-OBJDIR 		:= $(call make_dir, obj)
-$(call make_dir, bin)
+# file.c
+KERN_TO_OBJECT = $(addprefix $(OBJDIR)$(SEMI),$(notdir $(addsuffix .o, $(basename $(1)))))
+KERN_OBJS = $(foreach src,$(KERN_SOURCE),$(call KERN_TO_OBJECT,$(src)))
 
-KERNEL		= $(call totarget,kernel)
-BOOTBLOCK 	= $(call totarget,bootblock)
-UOSIMG		= $(call totarget,uOS.img)
-
-all:$(TARGETS) 
+define CREATE_KERN_OBJ_TARGET
+$(call KERN_TO_OBJECT,$(1)) : $(1)
+	$(V) $(CC) $(CFLAGS) $(KINCLUDE) -MD -c -o $$@ $$^
+endef
+# ---------------------------------------------------------------------------------------------------
+# 生成uOS.img
+UOSIMG = $(BINDIR)$(SEMI)uOS.img
+#---------------------------------------------------------------------------------------------------
+TARGET: $(BOOTBLOCK) $(TOOLSELF) $(KERNEL) $(BOOT_OUT) $(UOSIMG)
+all: $(TARGET) 
 # 生成内核
-$(KERNEL): kernel/init/init.o libs/string.o kernel/driver/console.o kernel/libs/stdio.o
-	$(LD) $(LDFLAGS) $(LDLABLE) kern_init $(LDTEXT) 0x100000 -T tools/kernel.ld -o $@ $^
-kernel/init/init.o:kernel/init/init.c 
-	@echo "=========="
-	@echo "KERNEL"
-	@echo "=========="
-	$(CC) $(CFLAGS) -c $^ -o $@
-libs/string.o:libs/string.c 
-	$(CC) $(CFLAGS) -c $^ -o $@
-kernel/driver/console.o: kernel/driver/console.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-kernel/libs/stdio.o:kernel/libs/stdio.c
-	$(CC) $(CFLAGS) -c $^ -o $@
+$(KERNEL) : $(KERN_OBJS)
+	@echo "================="
+	@echo "Create Kernel"
+	@echo "================="
+	$(V) $(LD) $(LDFLAGS) $(KINCLUDE) $(LDLABLE) kern_init $(LDTEXT) 0x100000 -T $(KERN_LD) -o $@ $^
 
-# 生成bootblock.out
-obj/bootblock.out: obj/bootblock.o
+$(foreach src,$(KERN_SOURCE),$(eval $(call CREATE_KERN_OBJ_TARGET,$(src))))
+
+$(BOOT_OUT) : $(BOOT_OUT_OBJS)
+	@echo "================="
+	@echo "Create Bootblock.out"
+	@echo "================="
 	$(CP) $(CPFLAGS) $^ $@
-obj/bootblock.o: obj/bootasm.o obj/bootmain.o
+$(BOOT_OUT_OBJS) : $(BOOT_OBJS)
+	@echo $(BOOT_OBJS)
 	$(LD) $(LDFLAGS) $(LDLABLE) start $(LDTEXT) 0x7C00 -o $@ $^
-	$(DP) $(DPFLAGS) $@ > obj/bootblock.asm
-obj/bootmain.o: boot/bootmain.c
-	$(CC) $(CFLAGS) -Os -c $^ -o $@ 
-obj/bootasm.o: boot/bootasm.S
-	@echo "=========="
-	@echo "BOOTLOADER"
-	@echo "=========="
-	$(CC) $(CFLAGS) -Os -c $^ -o $@
+	$(DP) $(DPFLAGS) $@ > $(patsubst %.o, %.asm, $(BOOT_OUT_OBJS))
 
-# 创建sign
-$(TOOLSELF):$(TOOLSRC)
-	$(CC) -O2 -o $@ $^
+$(foreach src,$(BOOT_SOURCE),$(eval $(call CREATE_BOOT_OBJ_TARGET,$(src))))
 
 # 签名bootloader
-# 
-$(BOOTBLOCK): $(TOOLSELF)
+$(BOOT_BLOCK) : $(TOOLSELF)
 	@echo "=========="
 	@echo "SIGN BOOTLOADER"
 	@echo "=========="
-	$^ obj/bootblock.out $@
+	$(V) $^ $(BOOT_OUT) $@
+
+# 创建sign
+$(TOOLSELF) : $(TOOLSRC)
+	@echo "=========="
+	@echo "Create Sign"
+	@echo "=========="
+	$(V) $(CC) -O2 -o $@ $^
 
 # 生成uOS硬盘镜像
-$(UOSIMG): $(BOOTBLOCK) $(KERNEL)
+$(UOSIMG): $(BOOT_BLOCK) $(KERNEL)
 	@echo "=========="
 	@echo "UOSIMG"
 	@echo "=========="
-	dd if=/dev/zero of=$@ count=10000
-	dd if=$(BOOTBLOCK) of=$@ count=512 conv=notrunc
-	dd if=$(KERNEL) of=$@ seek=1 conv=notrunc
+	$(V) dd if=/dev/zero of=$@ count=10000
+	$(V) dd if=$(BOOT_BLOCK) of=$@ count=512 conv=notrunc
+	$(V) dd if=$(KERNEL) of=$@ seek=1 conv=notrunc
 
 
-.PHONY:clean gdb debug qemu-kern qemu-mon bios-mon rebuild 
+.PHONY: clean gdb debug qemu-kern qemu-mon bios-mon rebuild 
 clean:
-	rm -rf obj bin
-	rm -f tools/*.o tools/*.d tools/sign
-	rm -f kernel/init/*.o kernel/init/*.d
-	rm -f kernel/libs/*.o kernel/libs/*.d
-	rm -f kernel/driver/*.o kernel/driver/*.d
-	rm -f libs/*.o libs/*.d
+	rm -r $(OBJDIR) $(BINDIR)
 qemu-mon:
 	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
 	$(V) sleep 1

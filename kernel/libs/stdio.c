@@ -39,6 +39,7 @@ __vprintformat(
 		format++;
 		ch = *format;
 		format++;
+		// TODO - 完成%c的解析，%d的解析
 		switch(ch) {
 		case 's':
 		{
@@ -53,7 +54,6 @@ __vprintformat(
 					putch(ch, putData);
 				}
 			}
-
 		}
 			break;
 		default:

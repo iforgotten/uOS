@@ -3,6 +3,7 @@
 #include "string.h"
 #include "console.h"
 
+// TODO - 完成Makefile的动态生成，免得总修改Makefile
 void kern_init(void) __attribute__((noreturn));
 
 void
