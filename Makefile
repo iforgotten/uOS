@@ -1,3 +1,4 @@
+
 PWD 	:= $(shell pwd)
 
 CC		:= gcc -m32 -ggdb
@@ -18,6 +19,7 @@ TERMINAL	:= gnome-terminal
 
 RM			:= rm -f 
 SEMI		:= /
+
 
 # 最后在编译之前生成bin和obj文件夹
 ifndef OBJDIR
@@ -85,9 +87,10 @@ endef
 # 生成uOS.img
 UOSIMG = $(BINDIR)$(SEMI)uOS.img
 #---------------------------------------------------------------------------------------------------
+# 生成内核
 TARGET: $(BOOTBLOCK) $(TOOLSELF) $(KERNEL) $(BOOT_OUT) $(UOSIMG)
 all: $(TARGET) 
-# 生成内核
+start:
 $(KERNEL) : $(KERN_OBJS)
 	@echo "================="
 	@echo "Create Kernel"
@@ -132,9 +135,10 @@ $(UOSIMG): $(BOOT_BLOCK) $(KERNEL)
 	$(V) dd if=$(KERNEL) of=$@ seek=1 conv=notrunc
 
 
-.PHONY: clean gdb debug qemu-kern qemu-mon bios-mon rebuild 
+.PHONY:clean gdb debug qemu-kern qemu-mon bios-mon all 
 clean:
 	rm -r $(OBJDIR) $(BINDIR)
+	rm -f $(TOOLSELF)
 qemu-mon:
 	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
 	$(V) sleep 1
@@ -153,4 +157,4 @@ qemu-kern:
 	$(V) $(TERMINAL) -e "gdb -q -x tools/kerninit"
 gdb:
 	$(V)$(QEMU) -S -s -parallel stdio -hda bin/uOS.img -serial null
-rebuild: clean all
+all: start
