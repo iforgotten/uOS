@@ -2,6 +2,7 @@
 #include "x86.h"
 #include "string.h"
 #include "console.h"
+#include "kdebug.h"
 
 // TODO - 完成Makefile的动态生成，免得总修改Makefile
 void kern_init(void) __attribute__((noreturn));
@@ -23,6 +24,7 @@ kern_init(void){
 
     const char* message = "Hello,uOS!";
     cprintf("%s\n\n",message);
+    print_kerninfo();
 
     while(1);
 }

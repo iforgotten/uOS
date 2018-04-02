@@ -63,12 +63,14 @@ TOOLSELF	:= tools/sign
 BOOT_BLOCK	:= $(BINDIR)$(SEMI)bootblock
 #----------------------------------------------------------------------------------------------------
 # Create Kernel
-KERN_DIRS	= $(shell find kernel/ -maxdepth 3 -type d)
-KERN_DIRS += $(shell find libs/ -maxdepth 3 -type d)
-KERN_SOURCE	+= $(foreach dir, $(KERN_DIRS), $(wildcard $(dir)/*.c))
-KERN_INCLUDE += kernel/libs		\
-				kernel/driver	\
-				libs
+KERN_DIRS		= $(shell find kernel/ -maxdepth 3 -type d)
+KERN_DIRS 		+= $(shell find libs/ -maxdepth 3 -type d)
+KERN_SOURCE		+= $(foreach dir, $(KERN_DIRS), $(wildcard $(dir)/*.c))
+KERN_INCLUDE 	+= kernel/libs		\
+					kernel/driver	\
+					libs			\
+					kernel/debug
+
 KERN_INCLUDE := $(addprefix $(PWD)$(SEMI), $(KERN_INCLUDE))
 KERN_OBJS	:= $(addsuffix .o, $(basename $(KERN_SOURCE)))
 KINCLUDE 	:= $(addprefix -I, $(KERN_INCLUDE))
@@ -88,9 +90,8 @@ endef
 UOSIMG = $(BINDIR)$(SEMI)uOS.img
 #---------------------------------------------------------------------------------------------------
 # 生成内核
-TARGET: $(BOOTBLOCK) $(TOOLSELF) $(KERNEL) $(BOOT_OUT) $(UOSIMG)
-all: $(TARGET) 
-start:
+.PHONY:all clean gdb debug qemu-kern qemu-mon bios-mon begin
+all: $(BOOTBLOCK) $(TOOLSELF) $(KERNEL) $(BOOT_OUT) $(UOSIMG)
 $(KERNEL) : $(KERN_OBJS)
 	@echo "================="
 	@echo "Create Kernel"
@@ -135,7 +136,7 @@ $(UOSIMG): $(BOOT_BLOCK) $(KERNEL)
 	$(V) dd if=$(KERNEL) of=$@ seek=1 conv=notrunc
 
 
-.PHONY:clean gdb debug qemu-kern qemu-mon bios-mon all 
+
 clean:
 	rm -r $(OBJDIR) $(BINDIR)
 	rm -f $(TOOLSELF)
@@ -157,4 +158,3 @@ qemu-kern:
 	$(V) $(TERMINAL) -e "gdb -q -x tools/kerninit"
 gdb:
 	$(V)$(QEMU) -S -s -parallel stdio -hda bin/uOS.img -serial null
-all: start

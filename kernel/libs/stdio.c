@@ -25,6 +25,7 @@ __vprintformat(
 	register char* pArg;
 	pArg = NULL;
 
+
 	// 循环处理
 	while(true) {
 		// 判断标准格式化字符
@@ -36,10 +37,12 @@ __vprintformat(
 			putch(ch, putData);
 		}
 
+		// TODO - 完成%c的解析，%d的解析, %x
+		char padC = ' ';
+reswitch:
 		format++;
 		ch = *format;
 		format++;
-		// TODO - 完成%c的解析，%d的解析
 		switch(ch) {
 		case 's':
 		{
@@ -54,6 +57,14 @@ __vprintformat(
 					putch(ch, putData);
 				}
 			}
+		}
+			break;
+		case '0':
+			padC = '0';
+			goto reswitch;
+		case 'x':
+		{
+
 		}
 			break;
 		default:
