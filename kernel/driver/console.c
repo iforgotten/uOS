@@ -21,6 +21,35 @@
 #define CRT_COLS        	80
 #define CRT_SIZE       		(CRT_ROWS * CRT_COLS)
 
+#define COM1				0x3F8
+#define COM1_IRQ			4
+
+// The 8 I/O Byte Locations on the UART
+// A2 A1 A0
+#define COM_RX				0		// Receiver Buffer, read data from RX(DLAB = 0)
+#define COM_TX				0		// Transmitter holding, write data to TX(DLAB = 0)
+#define COM_DLL				0		// LS Byte(DLAB = 1)
+#define COM_DLM				1		// MS Byte(DLAB = 0)
+#define COM_LSD				0		// LS Byte of baud rate divisor
+#define COM_IER				1		// Interrupt enable Register
+#define COM_MSD				1		// MS Byte of baud rate Divisor
+#define COM_FCR				2		// FIFO Control Register
+#define COM_LCR				3		// Line Control Register
+#define COM_MCR				4		// Modem Control Register
+#define COM_LSR				5		// Line Status Register, Read-Only.
+#define	COM_MS				6		// Modem status
+
+#define COM_LCR_PE_NO		0x08	// PE = 0, no parity
+#define COM_LCR_DLAB		0x80	// DL = 1, Enable Divisor latch.
+#define COM_LCR_DT_LEN		0x03	// L1, L0 = 11 == 8bits. Data length is 8 bits.
+
+#define COM_FCR_DISABLE		0x0		// disable FIFO
+
+#define COM_LSR_DR			0x01	// RX Read, Data Ready
+#define COM_LSR_TH			0x20	// TX Ready.
+#define COM_LSR_TE			0x40
+
+#define COM_IER_RDI			0x01	// Enable receiver data interrupt.
 
 static uint16_t* crtBuff;
 static uint16_t crtContoller;
@@ -132,10 +161,56 @@ CGA_scrollup() {
 	crtPos -= CRT_COLS;
 }
 
-// TODO - 完成串口，并口的初始化
+/*
+ * Serial Port Settings
+ * 1. We need to select speed, number of data bits per character, parity, and number of stop bits per character
+ * 2. SPeed:
+ * 	  Bit Rats: the sum of transmitting bits per second.
+ *    The port speed and device speed must match; 8-N-1: 8 data, no parity bit, and one stop bit.
+ * 3. Data bits: the number of data bits in each charactor can be 5, 6, 7, 8 or 9.
+ * 4. Parity: None.
+ * 5. Stop bits.
+ * 6. Conventional notation:The data/parity/stop (D/P/S) conventional notation specifies the framing of a serial connection.
+ * 7. Flow control: "handshaking" method. We use software handshaking. XON and XOFF.the direction is from receiver to sender.
+ */
+
+/*
+ * LS Byte: 000 = 0, write LS Byte of baud rate divisor.
+ * MS Byte: 001 = 1
+ * FIFO Control Register: 010 = 2
+ * LSR(LINE STATUS REGISTER): 101 = 5
+ * LCR(LINE CONTROL REGISTER): 011 = 3
+ */
+static void
+serial_init(void)
+{
+	// 禁止FIFO Buffer
+	outb(COM1 + COM_FCR, COM_FCR_DISABLE);
+
+	// 设置Speed,9600bps所需要的DIVISOR == 12D
+	// 打开DLAB，然后才能设置Speed
+	outb(COM1 + COM_LCR, COM_LCR_DLAB);
+	// 采用LSB，即：小端方式存放
+	outb(COM1 + COM_DLL, (uint8_t)0x0C);
+	outb(COM1 + COM_DLM, 0);
+
+	// 设置8-N-1, 关闭DLAB
+	outb(COM1 + COM_LCR, COM_LCR_DT_LEN & ~COM_LCR_DLAB);
+
+	// 关闭 modem controls
+	outb(COM1 + COM_MCR, 0);
+	// 打开接受中断
+	// outb(COM1 + COM_IER, COM_IER_RDI);
+
+	// TODO - 串口的中断服务例程和中断向量还没有添加
+
+}
+
+// TODO - 并口的初始化
 void
 console_init(void) {
 	CGA_init();
+	serial_init();
 }
 
 // TODO - 完成串口，并口的字符输出
