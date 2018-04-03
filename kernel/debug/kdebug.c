@@ -9,6 +9,6 @@ print_kerninfo(void) {
 	cprintf("etext: 0x%08x \n", etext);
 	cprintf("edata: 0x%08x \n", edata);
 	cprintf("end: 0x%08x \n", end);
-    cprintf("Kernel executable memory footprint: %dKB\n", (end - kern_init + 1023)/1024);
+    cprintf("Kernel executable memory footprint: %dKB\n", (end - kern_init + 1023) / 1024);
 	cprintf("------------------------\n");
 }
