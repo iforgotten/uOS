@@ -23,7 +23,6 @@
  })
 
 
-
 static inline uint8_t inb(uint16_t port) __attribute__((always_inline));
 static inline void outb(uint16_t port, uint8_t data) __attribute__((always_inline));
 static inline void outw(uint16_t port, uint16_t data) __attribute__((always_inline));

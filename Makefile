@@ -135,11 +135,10 @@ $(UOSIMG): $(BOOT_BLOCK) $(KERNEL)
 	$(V) dd if=$(BOOT_BLOCK) of=$@ count=512 conv=notrunc
 	$(V) dd if=$(KERNEL) of=$@ seek=1 conv=notrunc
 
-
-
 clean:
 	rm -r $(OBJDIR) $(BINDIR)
 	rm -f $(TOOLSELF)
+	rm -f 
 qemu-mon:
 	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
 	$(V) sleep 1
