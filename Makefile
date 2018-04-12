@@ -1,7 +1,6 @@
-
 PWD 	:= $(shell pwd)
 
-CC		:= gcc -m32 -ggdb
+CC		:= gcc -ggdb
 CP		:= objcopy
 LD		:= ld 
 DP		:= objdump
@@ -12,7 +11,7 @@ LDLABLE		:= -e
 LDTEXT		:= -Ttext
 DPFLAGS		:= -S
 
-CFLAGS		:= -fno-builtin -Wall -fno-stack-protector -nostdinc -MD
+CFLAGS		:= -fno-builtin -Wall -fno-stack-protector -nostdinc -MD -m32
 V			:= @
 QEMU 		:= qemu
 TERMINAL	:= gnome-terminal
@@ -138,7 +137,6 @@ $(UOSIMG): $(BOOT_BLOCK) $(KERNEL)
 clean:
 	rm -r $(OBJDIR) $(BINDIR)
 	rm -f $(TOOLSELF)
-	rm -f 
 qemu-mon:
 	$(V) $(TERMINAL) -e "qemu -S -s -d in_asm -D obj/q.log -monitor stdio -hda bin/uOS.img"
 	$(V) sleep 1
