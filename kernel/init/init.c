@@ -4,7 +4,7 @@
 #include "console.h"
 #include "kdebug.h"
 #include "kmonitor.h"
-
+#include "picirq.h"
 void kern_init(void) __attribute__((noreturn));
 
 void
@@ -26,13 +26,16 @@ kern_init(void){
     cprintf("%s\n\n",message);
     print_kerninfo();
     mon_backtrace(0, NULL, NULL);
+
     // 8259中断设备，终端控制器
+    pic_init();
+    // 使能中断 sti
 
     // 建立中断描述符表
 
     // 时钟中断8253
 
-    // 使能中断 sti
+
 
     while(1);
 }
