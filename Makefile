@@ -71,6 +71,7 @@ KERN_INCLUDE 	+= kernel/libs		\
 					libs			\
 					kernel/debug	\
 					kernel/trap		\
+					kernel/mm		\
 
 KERN_INCLUDE := $(addprefix $(PWD)$(SEMI), $(KERN_INCLUDE))
 KERN_OBJS	:= $(addsuffix .o, $(basename $(KERN_SOURCE)))
