@@ -57,14 +57,15 @@ endef
 
 # --------------------------------------------------------------------------------------------------
 # Create tools/sign
-TOOLSRC		:= $(wildcard tools/*.c)
+TOOLS_EXCLUDE := tools/vector.c
+TOOLSRC		:= $(filter-out $(TOOLS_EXCLUDE),$(wildcard tools/*.c))
 TOOLSELF	:= tools/sign
 BOOT_BLOCK	:= $(BINDIR)$(SEMI)bootblock
 #----------------------------------------------------------------------------------------------------
 # Create Kernel
 KERN_DIRS		= $(shell find kernel/ -maxdepth 3 -type d)
 KERN_DIRS 		+= $(shell find libs/ -maxdepth 3 -type d)
-KERN_SOURCE		+= $(foreach dir, $(KERN_DIRS), $(wildcard $(dir)/*.c))
+KERN_SOURCE		+= $(foreach dir, $(KERN_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.S))
 KERN_INCLUDE 	+= kernel/libs		\
 					kernel/driver	\
 					libs			\

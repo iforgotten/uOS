@@ -5,6 +5,8 @@
 #include "kdebug.h"
 #include "kmonitor.h"
 #include "picirq.h"
+#include "trap.h"
+
 void kern_init(void) __attribute__((noreturn));
 
 void
@@ -21,7 +23,6 @@ kern_init(void){
     // 提供串口，并口，CGA进行显示的驱动程序初始化
     console_init();
     // 输出字符串
-
     const char* message = "Hello,uOS!";
     cprintf("%s\n\n",message);
     print_kerninfo();
@@ -29,9 +30,11 @@ kern_init(void){
 
     // 8259中断设备，终端控制器
     pic_init();
+    // 建立中断描述符表
+    idt_init();
     // 使能中断 sti
 
-    // 建立中断描述符表
+
 
     // 时钟中断8253
 

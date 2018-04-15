@@ -46,4 +46,7 @@ struct trapframe {
     uint16_t tf_padding5;
 } __attribute__((packed));
 
+void idt_init(void);
+void trap(struct trapframe* tf);
+
 #endif /* __KERNEL_TRAP_H__ */
