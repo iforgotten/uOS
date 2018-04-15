@@ -16,7 +16,6 @@
 	.byte (((base) >> 16) & 0xFF), (0x90 | type),					\
 		(0xC0 | (((limit) >> 16) & 0xFF)), (((base) >> 24) & 0xFF)
 
-
 /*
 #define SEG_NORMAL(type,base,lim)                                  \
     .word (((lim) >> 12) & 0xffff), ((base) & 0xffff);          \

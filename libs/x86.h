@@ -28,6 +28,9 @@ static inline void outb(uint16_t port, uint8_t data) __attribute__((always_inlin
 static inline void outw(uint16_t port, uint16_t data) __attribute__((always_inline));
 static inline void insl(uint32_t port, void *addr, int cnt) __attribute__((always_inline));
 
+static inline uint32_t read_ebp(void) __attribute__((always_inline));
+static inline void sti(void) __attribute__((always_inline));
+static inline void cli(void) __attribute__((always_inline));
 static inline uint8_t
 inb(uint16_t port) {
     uint8_t data;
@@ -82,6 +85,31 @@ insl(uint32_t port, void *addr, int cnt) {
     );
 }
 
+static inline uint32_t
+read_ebp(void) {
+	uint32_t ebp;
+	asm volatile(
+		"movl %%ebp, %0;"	\
+		:"=r"(ebp):
+	);
+	return ebp;
+}
+
+static inline void
+cli(void) {
+	asm volatile(
+		"cli;"	\
+		::
+	);
+}
+
+static inline void
+sti(void) {
+	asm volatile(
+		"sti;"	\
+		::
+	);
+}
 
 static inline void* __memset(void* ptr, char c, size_t cnt) __attribute__((always_inline));
 static inline void* __memmove(void* dst, void* src, size_t cnt) __attribute__((always_inline));

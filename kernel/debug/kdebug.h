@@ -4,5 +4,6 @@
 #include "defs.h"
 
 void print_kerninfo(void);
+void print_stackframe(void);
 
 #endif

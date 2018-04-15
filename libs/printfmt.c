@@ -86,7 +86,6 @@ __vprintformat(
 			putch(ch, putData);
 		}
 
-		// TODO - 完成%d的解析, %x
 		char padC = ' ';
 		lflag = 0;
 reswitch:
