@@ -68,7 +68,8 @@ KERN_SOURCE		+= $(foreach dir, $(KERN_DIRS), $(wildcard $(dir)/*.c))
 KERN_INCLUDE 	+= kernel/libs		\
 					kernel/driver	\
 					libs			\
-					kernel/debug
+					kernel/debug	\
+					kernel/trap		\
 
 KERN_INCLUDE := $(addprefix $(PWD)$(SEMI), $(KERN_INCLUDE))
 KERN_OBJS	:= $(addsuffix .o, $(basename $(KERN_SOURCE)))
