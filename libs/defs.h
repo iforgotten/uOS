@@ -30,7 +30,6 @@ typedef int32_t     intptr_t;
 // 地址数值的类型
 typedef uint32_t    uintptr_t;
 
-// 内存大小
 typedef uintptr_t size_t;
 
 

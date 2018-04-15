@@ -6,6 +6,9 @@
 #include "kmonitor.h"
 #include "picirq.h"
 #include "trap.h"
+#include "intr.h"
+#include "pmm.h"
+#include "clock.h"
 
 void kern_init(void) __attribute__((noreturn));
 
@@ -28,16 +31,15 @@ kern_init(void){
     print_kerninfo();
     mon_backtrace(0, NULL, NULL);
 
-    // 8259中断设备，终端控制器
+    pmm_init();
+    // 8259中断设备，中断控制器
     pic_init();
+    // 时钟中断8253
+    clock_init();
     // 建立中断描述符表
     idt_init();
-    // 使能中断 sti
-
-
-
-    // 时钟中断8253
-
+    // 使能中断
+    enable_intr();
 
 
     while(1);

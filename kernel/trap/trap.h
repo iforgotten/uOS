@@ -10,6 +10,14 @@
 
 #include "defs.h"
 
+#define TRAP_SWITCH_TO_USR			200
+#define TRAP_SWITCH_TO_KERN			201
+
+#define IRQ_OFFSET 	0x20
+
+#define IRQ_TIMER	0
+
+
 /* registers as pushed by pushal */
 struct pushregs {
     uint32_t reg_edi;

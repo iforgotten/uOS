@@ -22,6 +22,12 @@
     __mod;                                                        	\
  })
 
+/* Pseudo-descriptors used for LGDT, LLDT(not used) and LIDT instructions. */
+struct pseudodesc {
+    uint16_t pd_lim;        // Limit
+    uint32_t pd_base;        // Base address
+} __attribute__ ((packed));
+
 
 static inline uint8_t inb(uint16_t port) __attribute__((always_inline));
 static inline void outb(uint16_t port, uint8_t data) __attribute__((always_inline));
@@ -31,6 +37,9 @@ static inline void insl(uint32_t port, void *addr, int cnt) __attribute__((alway
 static inline uint32_t read_ebp(void) __attribute__((always_inline));
 static inline void sti(void) __attribute__((always_inline));
 static inline void cli(void) __attribute__((always_inline));
+static inline void lidt(struct pseudodesc* pd) __attribute__((always_inline));
+static inline void ltr(uint16_t sel) __attribute__((always_inline));
+
 static inline uint8_t
 inb(uint16_t port) {
     uint8_t data;
@@ -109,6 +118,22 @@ sti(void) {
 		"sti;"	\
 		::
 	);
+}
+
+static inline void
+lidt(struct pseudodesc *pd) {
+	asm volatile(
+		"lidt (%0);"\
+		::"r"(pd)
+	);
+}
+
+static inline void
+ltr(uint16_t sel) {
+    asm volatile (
+    	"ltr %0;"		\
+    	:: "r" (sel)	\
+    );
 }
 
 static inline void* __memset(void* ptr, char c, size_t cnt) __attribute__((always_inline));

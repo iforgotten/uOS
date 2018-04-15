@@ -158,7 +158,7 @@ CGA_scrollup() {
 	for(i = CRT_SIZE - CRT_COLS; i < CRT_SIZE; ++i) {
 		crtBuff[i] = 0x0700 | ' ';
 	}
-	crtPos -= CRT_COLS;
+	crtPos -= (CRT_ROWS * CRT_COLS);
 }
 
 /*
