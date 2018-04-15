@@ -26,7 +26,7 @@ http://www.ndr-nkc.de/download/datenbl/i8255.pdf
 https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller  
 7. uCore OS Tsinghua  
 https://legacy.gitbook.com/book/chyyuu/simple_os_book/details  
-8. ucore_os_lab chyyuu
+8. ucore_os_lab chyyuu  
 https://github.com/chyyuu/ucore_os_lab  
 9. TSS: Task state segment  
 https://en.wikipedia.org/wiki/Task_state_segment  
