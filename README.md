@@ -31,5 +31,5 @@ https://github.com/chyyuu/ucore_os_lab
 9. TSS: Task state segment  
 https://en.wikipedia.org/wiki/Task_state_segment  
 10. 可编程时钟控制器8253
-https://blog.csdn.net/u013007900/article/details/50408903
+https://blog.csdn.net/u013007900/article/details/50408903  
 
