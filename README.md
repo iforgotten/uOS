@@ -24,3 +24,12 @@ http://www.s100computers.com/My%20System%20Pages/80386%20Board/1987_80386_Hardwa
 http://www.ndr-nkc.de/download/datenbl/i8255.pdf  
 6. X86 Assembly/Programmable Interrupt Controller  
 https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller  
+7. uCore OS Tsinghua  
+https://legacy.gitbook.com/book/chyyuu/simple_os_book/details  
+8. ucore_os_lab chyyuu
+https://github.com/chyyuu/ucore_os_lab  
+9. TSS: Task state segment  
+https://en.wikipedia.org/wiki/Task_state_segment  
+10. 可编程时钟控制器8253
+https://blog.csdn.net/u013007900/article/details/50408903
+
