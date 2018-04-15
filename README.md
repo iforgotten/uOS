@@ -1,4 +1,11 @@
-# uOS
+# 用到的工具
+1. eclipse-cdt  
+2. zylin Embedded CDT  
+3. gdb  
+4. gcc, objcopy, objdump, dd  
+5. IDA pro 6.4 linux
+6. qemu-system-i386
+7. make  
 
 # 备注
 1. Ubuntu修复依赖项命令  
