@@ -10,6 +10,16 @@
 # 备注
 1. Ubuntu修复依赖项命令  
 sudo apt-get install -f  
+2. Ubuntu安装Eclipse-CDT  
+sudo apt-get install eclipse-cdt  
+3. Ubuntu安装Zylin Embeded CDT，要求EclipseCDT的版本低于4.5.即，JVM8版本的eclipse  
+(1) eclipse -> Help -> Install New Software -> 输入以下地址，进行安装  
+Zylin Embedded CDT - http://opensource.zylin.com/zylincdt  
+4. Ubuntu安装qemu-system-i386
+sudo apt-get install qemu  
+sudo ln -s /usr/bin/qemu-system-i386 /usr/bin/qemu  
+5. Ubuntu安装gdb  
+sudo apt-get install gdb  
 
 # 参考资料：  
 1. 使用Qemu + gdb调试内核  
