@@ -66,9 +66,9 @@ BOOT_BLOCK	:= $(BINDIR)$(SEMI)bootblock
 KERN_DIRS		= $(shell find kernel/ -maxdepth 3 -type d)
 KERN_DIRS 		+= $(shell find libs/ -maxdepth 3 -type d)
 KERN_SOURCE		+= $(foreach dir, $(KERN_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.S))
-KERN_INCLUDE 	+= kernel/libs		\
+KERN_INCLUDE 	+= 	libs			\
+					kernel/libs		\
 					kernel/driver	\
-					libs			\
 					kernel/debug	\
 					kernel/trap		\
 					kernel/mm		\

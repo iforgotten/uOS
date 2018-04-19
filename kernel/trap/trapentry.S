@@ -1,3 +1,4 @@
+#include "memlayout.h"
 .text
 .global __alltraps
 __alltraps:
@@ -7,9 +8,9 @@ __alltraps:
     pushl %gs
     pushal
 
-    movl $16, %eax
-    mov %ax, %ds
-    mov %ax, %es
+    movl $GD_KDATA, %eax
+    movw %ax, %ds
+    movw %ax, %es
 
     pushl %esp
 
@@ -21,10 +22,10 @@ __alltraps:
 __trapret:
     popal
 
-    pop %gs
-    pop %fs
-    pop %es
-    pop %ds
+    popl %gs
+    popl %fs
+    popl %es
+    popl %ds
 
     addl $0x8, %esp
     iret

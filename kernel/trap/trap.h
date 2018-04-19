@@ -10,8 +10,8 @@
 
 #include "defs.h"
 
-#define TRAP_SWITCH_TO_USR			200
-#define TRAP_SWITCH_TO_KERN			201
+#define TRAP_SWITCH_TO_USR			100
+#define TRAP_SWITCH_TO_KERN			101
 
 #define IRQ_OFFSET 	0x20
 

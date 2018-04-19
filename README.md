@@ -42,4 +42,5 @@ https://github.com/chyyuu/ucore_os_lab
 https://en.wikipedia.org/wiki/Task_state_segment  
 10. 可编程时钟控制器8253  
 https://blog.csdn.net/u013007900/article/details/50408903  
-
+11. Intel 64 and IA32 Architectures Software Developer Instruction Set Reference Manual  
+https://software.intel.com/sites/default/files/managed/39/c5/325462-sdm-vol-1-2abcd-3abcd.pdf 
