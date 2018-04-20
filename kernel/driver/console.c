@@ -9,6 +9,7 @@
 #include "defs.h"
 #include "string.h"
 #include "x86.h"
+#include "trap.h"
 
 // 设备驱动层
 // 包括串口，并口，和VGA的操作
@@ -32,6 +33,7 @@
 #define COM_DLM				1		// MS Byte(DLAB = 0)
 #define COM_LSD				0		// LS Byte of baud rate divisor
 #define COM_IER				1		// Interrupt enable Register
+#define COM_IIR         	2       // In:  Interrupt ID Register
 #define COM_MSD				1		// MS Byte of baud rate Divisor
 #define COM_FCR				2		// FIFO Control Register
 #define COM_LCR				3		// Line Control Register
@@ -58,6 +60,9 @@ static uint16_t crtPos;
 static void CGA_init(void);
 static void CGA_putch(int ch);
 static void inline CGA_scrollup() __attribute__((always_inline));;
+
+static bool serialExist = false;
+
 /*
  * CGA:
  * 0xB0000 - 0xB7777 单色字符
@@ -200,10 +205,16 @@ serial_init(void)
 	// 关闭 modem controls
 	outb(COM1 + COM_MCR, 0);
 	// 打开接受中断
-	// outb(COM1 + COM_IER, COM_IER_RDI);
+	outb(COM1 + COM_IER, COM_IER_RDI);
 
 	// TODO - 串口的中断服务例程和中断向量还没有添加
+	serialExist = (inb(COM1 + COM_LSR) != 0xFF);
+	inb(COM1+COM_IIR);
+	inb(COM1+COM_RX);
 
+	if(serialExist) {
+		pic_enable(IRQ_COM1);
+	}
 }
 
 // TODO - 并口的初始化
@@ -211,6 +222,10 @@ void
 console_init(void) {
 	CGA_init();
 	serial_init();
+
+	if(!serialExist) {
+		cprintf("serial does not exist. \n");
+	}
 }
 
 // TODO - 完成串口，并口的字符输出

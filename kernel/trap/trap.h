@@ -16,6 +16,8 @@
 #define IRQ_OFFSET 	0x20
 
 #define IRQ_TIMER	0
+#define IRQ_COM1    4
+#define IRQ_KBD     1
 
 
 /* registers as pushed by pushal */

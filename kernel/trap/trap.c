@@ -15,12 +15,18 @@
 
 #define TICK_NUM 100
 
+// 故障号定义
+#define DOUBLE_FAILURE			8	
+#define	GENERAL_PROTECTION_ERR	13
+
 static struct GateDescriptors IDT[256] = {{0}};
 static struct pseudodesc IDT_PD = {
     sizeof(IDT) - 1, (uintptr_t)IDT
 };
 
 struct trapframe switchk2u, *switchu2k;
+
+void trap_error_message(uint32_t *no);
 
 static void
 trap_dispatch(struct trapframe* tf) {
@@ -57,7 +63,20 @@ trap_dispatch(struct trapframe* tf) {
 		break;
 	default:
 		// 在内核态，这里出现的就是错误
+		trap_error_message(&no);
 		break;
+	}
+}
+
+void 
+trap_error_message(uint32_t *no) {
+	switch(*no) {
+		case GENERAL_PROTECTION_ERR:
+			cprintf("通用保护异常：违反了保护模式下的某种保护规则\n");
+			break;
+		default:
+			cprintf("Unkown trap error!\n");
+			break;
 	}
 }
 

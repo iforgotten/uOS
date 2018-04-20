@@ -92,7 +92,7 @@ endef
 UOSIMG = $(BINDIR)$(SEMI)uOS.img
 #---------------------------------------------------------------------------------------------------
 # 生成内核
-.PHONY:all clean gdb debug qemu-kern qemu-mon bios-mon begin
+.PHONY:all clean gdb debug qemu-kern qemu-mon bios-mon 
 all: $(BOOTBLOCK) $(TOOLSELF) $(KERNEL) $(BOOT_OUT) $(UOSIMG)
 $(KERNEL) : $(KERN_OBJS)
 	@echo "================="
