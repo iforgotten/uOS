@@ -143,7 +143,7 @@ CGA_putch(int ch) {
 
     // scroll up
     if(crtPos >= CRT_SIZE) {
-    	memmove((void*)crtBuff, (void*)(CRT_SIZE - CRT_COLS), \
+    	memmove((void*)crtBuff, (void*)(crtBuff + CRT_COLS), \
     			(CRT_SIZE - CRT_COLS) * sizeof(uint16_t));
     	CGA_scrollup();
     }
@@ -158,12 +158,12 @@ CGA_putch(int ch) {
 // 向上卷一行
 static void
 CGA_scrollup() {
-	// MEMMOVE
 	int i;
 	for(i = CRT_SIZE - CRT_COLS; i < CRT_SIZE; ++i) {
 		crtBuff[i] = 0x0700 | ' ';
 	}
-	crtPos -= (CRT_ROWS * CRT_COLS);
+	crtPos -= CRT_COLS;
+	// crtPos -= (CRT_ROWS * CRT_COLS);
 }
 
 /*
